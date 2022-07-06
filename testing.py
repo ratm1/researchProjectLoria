@@ -60,7 +60,7 @@ class TestMemory(unittest.TestCase):
         Memory_.setSample(sampleOne)
         Memory_.setSample(sampleTwo)
         ### All the samples are in an array of tuples ###
-        self.assertEqual(Memory_.getAllSamples(), [([], 1, -10, []), ([], 1, -7, [])])
+        self.assertEqual(Memory_.getAllSamples(), [([], 0, -10, []), ([], 1, -7, [])])
 
     def testSamples(self):
         Memory_ = Memory(1, 2)
@@ -73,16 +73,10 @@ class TestMemory(unittest.TestCase):
         (previousState, previousAction, reward, currentState)
         """
         sampleOne = ([], 0, -10, [])
-        """
-        Test number of samples greater than the number of samples
-        available
-        """
+
         Memory_.setSample(sampleOne)
         self.assertEqual(len(Memory_.getSamples(2)), 1)
-        """
-        Test number of samples not greater than the number of
-        samples available
-        """
+
         Memory_.setSample(sampleOne)
         self.assertEqual(len(Memory_.getSamples(2)), 2)
 
@@ -228,14 +222,14 @@ class TestTrafficLightControlSimulation(unittest.TestCase):
         self.assertEqual(TrafficLightControlSimulation_.getMaximumSteps(), 700)
 
 
-#
-#     def testTrafficLightControlSteps(self):
-#         """
-#          Test steps in the simulation
-#          """
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#
-#         self.assertEqual(TrafficLightControlSimulation_.getStep(), 0)
+
+    def testTrafficLightControlSteps(self):
+        """
+         Test steps in the simulation
+         """
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+
+        self.assertEqual(TrafficLightControlSimulation_.getStep(), 0)
 #
 #     def testTrafficLightActionsOutput(self):
 #         """

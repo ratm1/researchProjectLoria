@@ -19,15 +19,11 @@ class TrafficGenerator:
             <vType accel="1.0" decel="4.5" id="standard_car" length="5.0" minGap="2.5" maxSpeed="25" sigma="0.5" />
 
             <route id="W_E" edges= "west_edge_one east_edge_two"/>
-            <route id="W_S" edges= "west_edge_one south_edge_two"/>
 
-            <route id="N_W" edges= "north_edge_one west_edge_two"/>
             <route id="N_S" edges= "north_edge_one south_edge_two"/>
 
-            <route id="E_N" edges= "east_edge_one north_edge_two"/>
             <route id="E_W" edges= "east_edge_one  west_edge_two"/>
 
-            <route id="S_E" edges= "south_edge_one  east_edge_two "/>
             <route id="S_N" edges= "south_edge_one north_edge_two"/> """, file=movement)
 
             for counter in range(carSteps):

@@ -1,9 +1,7 @@
 import sys
 from experiment import Experiment
-# from traffic import TrafficGenerator
-from traffic_straight_right import TrafficGenerator
+from traffic import TrafficGenerator
 from model import ModelTest
-from memory import Memory
 from trafficLightControlSimulationTesting import TrafficLightControlSimulation
 from plot import Plot
 

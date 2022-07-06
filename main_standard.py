@@ -1,5 +1,5 @@
 import sys
-from traffic_straight_right import TrafficGenerator
+from traffic import TrafficGenerator
 from trafficLightControlStandard import TrafficLightControlSimulation
 from plot import Plot
 from experiment import Experiment
@@ -30,7 +30,6 @@ if __name__ == "__main__":
         Experiment_ = Experiment(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
 
         Configuration_ = Experiment_.getExperiment()
-
 
         numberExperiment = Experiment_.getNumberExperiment()
 

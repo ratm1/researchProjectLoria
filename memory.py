@@ -9,8 +9,6 @@ class Memory:
 
     def setSample(self, sample):
         self.samples_.append(sample)
-        if self.getSamplesSizeMemory() > self.getMaximumSizeMemory():
-            self.getAllSamples().pop(0)
 
     def getSamples(self, numberOfSamples):
         if self.getSamplesSizeMemory() < self.getMinimumSizeMemory():

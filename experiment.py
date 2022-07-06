@@ -7,38 +7,24 @@ class Experiment:
         self.numberExperiment = numberExperiment
         self.numberInput = numberInput
 
-    def setNumberState(self, numberState):
-        self.numberState = numberState
-
-    def getNumberState(self):
-        return  self.numberState
-
     def getExperiment(self):
         # Low Traffic: 500 cars
         # Experiment 1
         if self.getNumberExperiment() == 1:
             Configuration_ = Configuration(False, 400, 5000, 500, 11, 4, 200, 200, 100, 0.001,
-                                           600, 500, 50000, self.numberInput, 2, 0.20, self.getPathExperiment(), 'sumo_config.sumocfg')
+                                           600, 500, 50000, self.numberInput, 2, 0.50, self.getPathExperiment(), 'sumo_config.sumocfg')
         # Experiment 2
         elif self.getNumberExperiment() == 2:
-            Configuration_ = Configuration(False, 400, 5000, 500, 11, 4, 200, 200, 100, 0.001,
-                                           600, 500, 50000, self.numberInput, 2, 0.50, self.getPathExperiment(), 'sumo_config.sumocfg')
-        # Experiment 3
-        elif self.getNumberExperiment() == 3:
             Configuration_ = Configuration(False, 400, 5000, 500, 11, 4, 200, 200, 100, 0.001,
                                            600, 500, 50000,  self.numberInput, 2, 0.75, self.getPathExperiment(), 'sumo_config.sumocfg')
 
         # High Traffic: 3000 cars
-        # Experiment 4
-        elif self.getNumberExperiment() == 4:
-            Configuration_ = Configuration(False, 400, 5000, 3000, 11, 4, 200, 200, 100, 0.001,
-                                           600, 500, 50000,  self.numberInput, 2, 0.20, self.getPathExperiment(), 'sumo_config.sumocfg')
-        # Experiment 5
-        elif self.getNumberExperiment() == 5:
+        # Experiment 3
+        elif self.getNumberExperiment() == 3:
             Configuration_ = Configuration(False, 400, 5000, 3000, 11, 4, 200, 200, 100, 0.001,
                                            600, 500, 50000,  self.numberInput, 2, 0.50, self.getPathExperiment(), 'sumo_config.sumocfg')
-        # Experiment 6
-        elif self.getNumberExperiment() == 6:
+        # Experiment 4
+        elif self.getNumberExperiment() == 4:
             Configuration_ = Configuration(False, 400, 5000, 3000, 11, 4, 200, 200, 100, 0.001,
                                            600, 500, 50000,  self.numberInput, 2, 0.75, self.getPathExperiment(), 'sumo_config.sumocfg')
 
