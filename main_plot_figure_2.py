@@ -4,7 +4,9 @@ from plot import Plot
 if __name__ == "__main__":
     # Low traffic (Experiment 1, Experiment 2, Experiment 3)
     # Rewards
-    Plot_ = Plot('results_data/2.figure_training_cumulative_reward_training_high_traffic', 15)
+    Plot_ = Plot('results_data/2.figure_training_cumulative_reward_training_high_traffic')
+    Plot_.setFontSize(15)
+
     # Experiment 1
     Plot_.draw(plots, '2.cumulative_reward_training_high_traffic',
                './results_data/2.figure_training_cumulative_reward_training_high_traffic/dataRewards_results_training_q5.csv',

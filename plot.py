@@ -8,16 +8,19 @@ import os
 
 
 class Plot:
-    def __init__(self, path, fontSize):
+    def __init__(self, path):
         self.path = path
-        self.fontSize = fontSize
 
     """
     Draw the graph according to certain parameters
     """
+    def setFontSize(self, fontSize):
+        self.fontSize = fontSize
+
+    def getFontSize(self):
+        return self.fontSize
 
     def draw(self, plt, fileName, results, xLabelTag, yLabelTag, colorTag, labelTag, titleTag):
-
         xValues = []
         yValues = []
 
@@ -30,7 +33,7 @@ class Plot:
         print(xValues)
         print(yValues)
         print("Draw and save it")
-        plt.rc('font', size=self.fontSize)
+        plt.rc('font', size=self.getFontSize())
         plt.plot(xValues, yValues, color=colorTag, label=labelTag)
         plt.ylabel(yLabelTag)
         plt.xlabel(xLabelTag)

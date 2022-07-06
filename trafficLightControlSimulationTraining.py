@@ -6,6 +6,7 @@ import random
 import timeit
 import os
 from sumolib import checkBinary
+from sample import Sample
 
 NORTH_SOUTH_RIGHT_GREEN_PHASE = 0
 NORTH_SOUTH_RIGHT_YELLOW_PHASE = 1
@@ -35,7 +36,6 @@ class TrafficLightControlSimulation:
         self.statesInput = Configuration.getStatesInput()
         self.actionsOutput = Configuration.getActionsOutput()
         self.epochsTraining = Configuration.getEpochsTraining()
-        # WRITE CLASSES FOR REWARD, CUMULATIVE WAIT STORE AND AVG QUEUE LENGTH - TBD
         self.rewards = []
         self.cumulativeWaitingTime = []
         self.stepActionStateInformation = []
@@ -92,38 +92,27 @@ class TrafficLightControlSimulation:
             print("Beginning while ")
             # DONE #
             currentState = self.getStateInformation(self.Configuration.getStatesInput())
-            # currentState = self.getState()
-            # currentState = self.getStateLengthQueue()
             print("The current state now  is: .....")
             print(currentState)
 
-            # print("The current state normalized")
-            # currentStateNormalized = np.array(
-            #     [(value - np.min(currentState)) / (np.max(currentState) - np.min(currentState)) for value in
-            #      currentState])
-            # print(currentStateNormalized)
-
-            # TO DO PARTIALLY #
-            print("***************** Starting the calculation for the current total waiting time "
-                  "***************************")
             currentTotalWaitingTime = self.getCollectiveWaitingTime()
-            print("******* Current total waiting time *************")
-            print(currentTotalWaitingTime)
 
             # DONE
             reward = self.getPreviousTotalWaitingTime() - currentTotalWaitingTime
-            print("The reward is: ....")
-            print(reward)
+
             # DONE
+            # Conditional for correct actions #
             if self.getStep() != 0:
-                self.Memory.setSample((self.getPreviousState(), self.getPreviousAction(), reward, currentState))
+                # TO CHECK #
+                Sample_ = Sample(self.getPreviousState(), self.getPreviousAction(), reward, currentState)
+                self.Memory.setSample(Sample_)
 
             currentAction = self.getAction(currentState, epsilon)
 
-            ################### IMPORTANT SAVE INFO ##############################
             self.saveInfoPerState(episode, self.getStep(), currentAction, reward, currentState)
 
             # DONE
+            # Check if previous action is different that the current action
             if self.getStep() != 0 and self.getPreviousAction() != currentAction:
                 # DONE
                 self.setYellowPhase(self.getPreviousAction())
@@ -132,7 +121,6 @@ class TrafficLightControlSimulation:
 
             # DONE
             self.setGreenPhase(currentAction)
-            # TO DO PARTIALLY
             self.setStepsSimulation(self.greenLightDuration)
 
             self.previousState = currentState
@@ -142,22 +130,16 @@ class TrafficLightControlSimulation:
             self.setSumNegativeRewards(reward)
 
             print("End while")
-        # DONE
         self.saveInformationPerEpisode()
-
         """
         Ending Traci Simulation
         """
-
         print("Closing traci simulation ")
-        # DONE
         self.setCloseTraci()
-
         """
         Training neural networks model
         """
-        # TBD
-        # CHECK THIS PART
+
         self.setTraining(self.epochsTraining)
 
     def getStateInformation(self, stateInput):
@@ -211,9 +193,9 @@ class TrafficLightControlSimulation:
     # DONE
     def setInitialParametersEpisode(self):
         self.step_ = 0
-        self.waitingTimes = {}
         self.sumNegativeRewards = 0
         self.sumWaitingTime = 0
+        self.waitingTimes = {}
 
         self.informationStateEpisode = []
         self.previousTotalWaitingTime = 0
@@ -587,11 +569,19 @@ class TrafficLightControlSimulation:
 
     # TO DO #  CHECK THIS ****
     def replayTraining(self):
+        # Array of samples
         batch = self.Memory.getSamples(self.ModelTrain.getBatchSize())
 
         if len(batch) > 0:
-            states = np.array([state[0] for state in batch])
-            nextStates = np.array([nextState[3] for nextState in batch])
+            print(" Batch ....")
+            print(batch)
+            # Find state from the samples
+            states = self.getStatesFromSamplesInBatch(batch)
+            print(" States ...")
+            print(states)
+            nextStates = self.getNewStatesFromSamplesInBatch(batch)
+            print("Next states ...")
+            print(nextStates)
 
             qSA = self.ModelTrain.getPredictionBatch(states)
             qSAD = self.ModelTrain.getPredictionBatch(nextStates)
@@ -602,13 +592,27 @@ class TrafficLightControlSimulation:
             # In the batch, there are different samples
             for position, sample in enumerate(batch):
                 # previousState previousAction reward
-                state, action, reward, _ = sample[0], sample[1], sample[2], sample[3]
+                state, action, reward, _ = sample.getPreviousState(), sample.getPreviousAction(), sample.getReward(), sample.getCurrentState()
                 currentQ = qSA[position]  # array: [0.8 0.3]
                 currentQ[action] = reward + self.gamma_ * np.amax(qSAD[position])
                 states[position] = state
                 qTarget[position] = currentQ
 
             self.ModelTrain.getTrainBatch(states, qTarget)
+
+    def getStatesFromSamplesInBatch(self, batch):
+        statesFromSamplesInBatch = []
+        for sample in batch:
+            statesFromSamplesInBatch.append(sample.getPreviousState())
+
+        return np.array(statesFromSamplesInBatch)
+
+    def getNewStatesFromSamplesInBatch(self, batch):
+        newStatesFromSampleInBatch = []
+        for sample in batch:
+            newStatesFromSampleInBatch.append(sample.getCurrentState())
+
+        return np.array(newStatesFromSampleInBatch)
 
     # DONE
     def saveInformationPerEpisode(self):

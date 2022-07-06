@@ -63,5 +63,6 @@ if __name__ == "__main__":
 
         print("Finish main_training")
 
-    except (RuntimeError, TypeError, NameError):
+    except Exception as e:
+        print(e)
         print('Exception: The arguments are not written correctly')
