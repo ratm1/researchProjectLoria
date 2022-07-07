@@ -52,7 +52,6 @@ class ModelTrain(nn.Module):
     def getOutputActions(self):
         return self.outputActions_
 
-    # CHECK THIS FUNCTION
     def getPredictionBatch(self, states):
         predictions = np.zeros((len(states), self.getOutputActions()))
 

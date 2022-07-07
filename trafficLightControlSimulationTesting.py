@@ -16,8 +16,6 @@ EAST_WEST_RIGHT_YELLOW_PHASE = 3
 """
 Traffic simulation with reinforcement learning while training with Q-learning
 """
-
-
 class TrafficLightControlSimulation:
     def __init__(self, Configuration, ModelTest, TrafficGenerator):
         self.ModelTest = ModelTest
@@ -65,7 +63,6 @@ class TrafficLightControlSimulation:
 
         return sumoConfiguration
 
-    # HERE CHECK
     def run(self, episode):
         # DONE
         sumoConfiguration = self.getSumoConfiguration(self.Configuration.getPathSumoConfiguration(),
@@ -88,27 +85,17 @@ class TrafficLightControlSimulation:
             print("Beginning while ")
             # DONE #
             currentState = self.getStateInformation(self.Configuration.getStatesInput())
-            # currentState = self.getState()
-            # currentState = self.getStateLengthQueue()
+
             print("The current state now  is: .....")
             print(currentState)
 
-            # TO DO PARTIALLY #
-            print("***************** Starting the calculation for the current total waiting time "
-                  "***************************")
             currentTotalWaitingTime = self.getCollectiveWaitingTime()
             print("******* Current total waiting time *************")
             print(currentTotalWaitingTime)
 
-            # DONE
-            reward = self.getPreviousTotalWaitingTime() - currentTotalWaitingTime
-            print("The reward is: ....")
-            print(reward)
-
             # TO DO
             currentAction = self.getAction(currentState)
 
-            ################### IMPORTANT SAVE INFO ##############################
             self.saveInfoPerState(episode, self.getStep(), currentAction, currentState)
 
             # DONE
@@ -125,8 +112,6 @@ class TrafficLightControlSimulation:
 
             self.previousAction = currentAction
             self.previousTotalWaitingTime = currentTotalWaitingTime
-            # DONE
-         #   self.setSumNegativeRewards(reward)
 
             print("End while")
         # DONE

@@ -9,11 +9,6 @@ from sample import Sample
 NORTH_SOUTH_REVERSE_GREEN_PHASE = 0
 EAST_WEST_REVERSE_GREEN_PHASE = 2
 
-"""
-Traffic simulation with reinforcement learning while training with Q-learning
-"""
-
-
 class TrafficLightControlSimulation:
     def __init__(self, Configuration, ModelTrain, Memory, TrafficGenerator):
         self.ModelTrain = ModelTrain
@@ -73,16 +68,16 @@ class TrafficLightControlSimulation:
         # TO DO
         self.setRouteFileSimulation(episode)
         """
-        Starting Traci simulation
-        """
+        # Starting Traci simulation
+        # """
         print("Starting traci simulation ")
-        # DONE
+        # # DONE
         self.setTraciStart(sumoConfiguration)
 
-        # DONE
+        # # DONE
         self.setInitialParametersEpisode()
 
-        # DONE
+        # # DONE
         while self.getStep() < self.getMaximumSteps():
             print("Beginning while ")
             # DONE #
@@ -106,7 +101,6 @@ class TrafficLightControlSimulation:
             self.saveInfoPerState(episode, self.getStep(), currentAction, reward, currentState)
 
             # DONE
-            # Check if previous action is different that the current action
             if self.getStep() != 0 and self.getPreviousAction() != currentAction:
                 # DONE
                 self.setYellowPhase(self.getPreviousAction())
@@ -134,7 +128,7 @@ class TrafficLightControlSimulation:
         Training neural networks model
         """
 
-        self.setTraining(self.epochsTraining)
+    #    self.setTraining(self.epochsTraining)
 
     def getStateInformation(self, stateInput):
         if stateInput == 4:
