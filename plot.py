@@ -1,11 +1,5 @@
-import os
-
-"""
-PLot the graph according to the finding results_data
-"""
 import csv
 import os
-
 
 class Plot:
     def __init__(self, path):
@@ -48,13 +42,8 @@ class Plot:
     def printFile(self, fileName, information):
         with open(os.path.join(self.path, fileName), 'w') as f:
             w = csv.writer(f)
-            # print(information)
-            # w.writerow(['episode', 'step', 'action', 'reward', 'state'])
             for i, row in enumerate(information):
-                # ['episode', 'step', 'action', 'reward', 'state']
                 if isinstance(row, list):
                     w.writerows(row)
-                # ['episode', 'cumulative time']
-                # ['episode', 'reward']
                 else:
                     w.writerow([i, row])

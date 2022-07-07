@@ -62,21 +62,17 @@ class ModelTrain(nn.Module):
         return predictions
 
     def getTrainBatch(self, states, qTarget):
-        # Clear out t gradients
+        # Clear out gradients
         self.optimizer_.zero_grad()
 
         newStates = torch.from_numpy(states.astype(np.float32))
         newStates = torch.reshape(newStates, (-1, self.inputState_)).to(self.device)
         qPredictedTorch = self.getForwardOutput(newStates).to(self.device)
         print("qPredicted Torch")
-        # print(qPredictedTorch)
-        #     qPredictedTorch = torch.from_numpy(qPredicted.astype(np.float32))
-        #     qPredictedTorch = torch.reshape(qPredictedTorch, (-1, self.getOutputActions())).to(self.device)
 
         qTargetTorch = torch.from_numpy(qTarget.astype(np.float32))
         qTargetTorch = torch.reshape(qTargetTorch, (-1, self.getOutputActions())).to(self.device)
         print("qTarget Torch")
-        #  print(qTargetTorch)
 
         loss = self.loss(qTargetTorch, qPredictedTorch).to(self.device)
         # Backward propagation

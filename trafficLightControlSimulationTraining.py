@@ -1,18 +1,13 @@
 import sys
-
 import traci
 import numpy as np
 import random
-import timeit
 import os
 from sumolib import checkBinary
 from sample import Sample
 
-NORTH_SOUTH_RIGHT_GREEN_PHASE = 0
-NORTH_SOUTH_RIGHT_YELLOW_PHASE = 1
-
-EAST_WEST_RIGHT_GREEN_PHASE = 2
-EAST_WEST_RIGHT_YELLOW_PHASE = 3
+NORTH_SOUTH_REVERSE_GREEN_PHASE = 0
+EAST_WEST_REVERSE_GREEN_PHASE = 2
 
 """
 Traffic simulation with reinforcement learning while training with Q-learning
@@ -103,7 +98,6 @@ class TrafficLightControlSimulation:
             # DONE
             # Conditional for correct actions #
             if self.getStep() != 0:
-                # TO CHECK #
                 Sample_ = Sample(self.getPreviousState(), self.getPreviousAction(), reward, currentState)
                 self.Memory.setSample(Sample_)
 
@@ -281,19 +275,11 @@ class TrafficLightControlSimulation:
 
     # DONE
     def getLengthQueue(self):
-        """
-        Returns the total number of halting vehicles for the last time step on the given edge.
-        A speed of less than 0.1 m/s is considered a halt. Number of vehicles without movement in a respective edge.
-        """
 
         queueNorth = self.getNumberOfVehiclesWithoutMovement("north_edge_one")
-
         queueSouth = self.getNumberOfVehiclesWithoutMovement("east_edge_one")
-
         queueEast = self.getNumberOfVehiclesWithoutMovement("south_edge_one")
-
         queueWest = self.getNumberOfVehiclesWithoutMovement("west_edge_one")
-
         totalQueue = self.getTotalNumberOfVehiclesWithoutMovement(queueNorth, queueSouth, queueEast, queueWest)
 
         return totalQueue
@@ -308,12 +294,31 @@ class TrafficLightControlSimulation:
         queue = self.getTraci().edge.getLastStepHaltingNumber(edge)
         return queue
 
-    # TO DO # CHECK THIS ****
+    # TO DO
     def getAction(self, state, epsilon):
         if random.random() < epsilon:
             return random.randint(0, self.getActionsOutput() - 1)
         else:
             return self.ModelTrain.getMaximumActions(self.ModelTrain.getPredictionOneState(state))
+
+    """
+    Set up movement traffic light ID phase
+    """
+
+    def setPhaseLightId(self, directionTrafficLightHeaderId):
+        """
+        setPhase(self, tlsID, index)
+        """
+        self.getTraci().trafficlight.setPhase("junction_center", directionTrafficLightHeaderId)
+
+    def getStateLengthQueue(self):
+        state = np.zeros(self.statesInput)
+        state[0] = self.getNumberOfVehiclesWithoutMovement("north_edge_one")
+        state[1] = self.getNumberOfVehiclesWithoutMovement("east_edge_one")
+        state[2] = self.getNumberOfVehiclesWithoutMovement("south_edge_one")
+        state[3] = self.getNumberOfVehiclesWithoutMovement("west_edge_one")
+
+        return state
 
     # DONE #
     """
@@ -334,29 +339,9 @@ class TrafficLightControlSimulation:
         Switches to the phase with the given index in the list of all phases for the current program.
         """
         if action == 0:
-            self.setPhaseLightId(NORTH_SOUTH_RIGHT_GREEN_PHASE)
+            self.setPhaseLightId(NORTH_SOUTH_REVERSE_GREEN_PHASE)
         elif action == 1:
-            self.setPhaseLightId(EAST_WEST_RIGHT_GREEN_PHASE)
-
-    """
-    Set up movement traffic light ID phase
-    """
-
-    # TBD
-    def setPhaseLightId(self, directionTrafficLightHeaderId):
-        """
-        setPhase(self, tlsID, index)
-        """
-        self.getTraci().trafficlight.setPhase("junction_center", directionTrafficLightHeaderId)
-
-    def getStateLengthQueue(self):
-        state = np.zeros(self.statesInput)
-        state[0] = self.getNumberOfVehiclesWithoutMovement("north_edge_one")
-        state[1] = self.getNumberOfVehiclesWithoutMovement("east_edge_one")
-        state[2] = self.getNumberOfVehiclesWithoutMovement("south_edge_one")
-        state[3] = self.getNumberOfVehiclesWithoutMovement("west_edge_one")
-
-        return state
+            self.setPhaseLightId(EAST_WEST_REVERSE_GREEN_PHASE)
 
     # TBD
     """
@@ -572,33 +557,34 @@ class TrafficLightControlSimulation:
         # Array of samples
         batch = self.Memory.getSamples(self.ModelTrain.getBatchSize())
 
-        if len(batch) > 0:
-            print(" Batch ....")
-            print(batch)
-            # Find state from the samples
-            states = self.getStatesFromSamplesInBatch(batch)
-            print(" States ...")
-            print(states)
-            nextStates = self.getNewStatesFromSamplesInBatch(batch)
-            print("Next states ...")
-            print(nextStates)
+        #    if len(batch) > 0:
+        print(" Batch ....")
+        print(batch)
+        # Find state from the samples
+        states = self.getStatesFromSamplesInBatch(batch)
+        print(" States ...")
+        print(states)
+        nextStates = self.getNewStatesFromSamplesInBatch(batch)
+        print("Next states ...")
+        print(nextStates)
 
-            qSA = self.ModelTrain.getPredictionBatch(states)
-            qSAD = self.ModelTrain.getPredictionBatch(nextStates)
+        q = self.ModelTrain.getPredictionBatch(states)
+        qPrime = self.ModelTrain.getPredictionBatch(nextStates)
 
-            # Initialize
-            states = np.zeros((len(batch), self.statesInput))
-            qTarget = np.zeros((len(batch), self.getActionsOutput()))
-            # In the batch, there are different samples
-            for position, sample in enumerate(batch):
-                # previousState previousAction reward
-                state, action, reward, _ = sample.getPreviousState(), sample.getPreviousAction(), sample.getReward(), sample.getCurrentState()
-                currentQ = qSA[position]  # array: [0.8 0.3]
-                currentQ[action] = reward + self.gamma_ * np.amax(qSAD[position])
-                states[position] = state
-                qTarget[position] = currentQ
+        # Initialize
+        states = np.zeros((len(batch), self.statesInput))
+        qTarget = np.zeros((len(batch), self.getActionsOutput()))
+        # In the batch, there are different samples
+        for position, sample in enumerate(batch):
+            state = sample.getPreviousState()
+            action = sample.getPreviousAction()
+            reward = sample.getReward()
+            currentQ = q[position]  # array: [0.8 0.3]
+            currentQ[action] = reward + self.gamma_ * np.amax(qPrime[position])
+            states[position] = state
+            qTarget[position] = currentQ
 
-            self.ModelTrain.getTrainBatch(states, qTarget)
+        self.ModelTrain.getTrainBatch(states, qTarget)
 
     def getStatesFromSamplesInBatch(self, batch):
         statesFromSamplesInBatch = []

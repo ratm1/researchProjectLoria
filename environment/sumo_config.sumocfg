@@ -7,12 +7,4 @@
         <route-files value="episode_current_small_environment.rou.xml"/>
     </input>
 
-    <time>
-      <begin value="0"/>
-    </time>
-
-    <processing>
-        <time-to-teleport value="-1"/>
-    </processing>
-
 </configuration>
