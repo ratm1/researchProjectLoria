@@ -43,23 +43,23 @@ if __name__ == "__main__":
             print("Episode: " + str(episode + 1))
             epsilon = 1.0 - (episode / Configuration_.getEpisodesTotal())
             TrafficLightControlSimulation_.run(episode, epsilon)
-            # if (episode + 1) % 40 == 0:
-            #     ModelTrain_.getSaveModel(ModelTrain_, Configuration_.getPathModelOrResults(), numberExperiment,
-            #                              episode + 1)
+            if (episode + 1) % 40 == 0:
+                ModelTrain_.getSaveModel(ModelTrain_, Configuration_.getPathModelOrResults(), numberExperiment,
+                                         episode + 1)
 
             episode += 1
-        #
-        # Plot(Configuration_.getPathModelOrResults()).printFile(
-        #     'dataEpisodeStepActionRewardState_' + sys.argv[1] + '_' + str(numberExperiment) + '.csv',
-        #     TrafficLightControlSimulation_.getStepActionStateInformation())
-        #
-        # Plot(Configuration_.getPathModelOrResults()).printFile(
-        #     'dataRewards_' + sys.argv[1] + '_' + str(numberExperiment) + '.csv',
-        #     TrafficLightControlSimulation_.getRewardsListTotalEpisodes())
-        #
-        # Plot(Configuration_.getPathModelOrResults()).printFile(
-        #     'dataCumulativeTime_' + sys.argv[1] + '_' + str(numberExperiment) + '.csv',
-        #     TrafficLightControlSimulation_.getCumulativeWaitingTimeTotalEpisodes())
+
+        Plot(Configuration_.getPathModelOrResults()).printFile(
+            'dataEpisodeStepActionRewardState_' + sys.argv[1] + '_' + str(numberExperiment) + '.csv',
+            TrafficLightControlSimulation_.getStepActionStateInformation())
+
+        Plot(Configuration_.getPathModelOrResults()).printFile(
+            'dataRewards_' + sys.argv[1] + '_' + str(numberExperiment) + '.csv',
+            TrafficLightControlSimulation_.getRewardsListTotalEpisodes())
+
+        Plot(Configuration_.getPathModelOrResults()).printFile(
+            'dataCumulativeTime_' + sys.argv[1] + '_' + str(numberExperiment) + '.csv',
+            TrafficLightControlSimulation_.getCumulativeWaitingTimeTotalEpisodes())
 
         print("Finish main_training")
 
