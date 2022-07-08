@@ -1,24 +1,23 @@
 import sys
 import traci
 import numpy as np
+import random
 import os
 from sumolib import checkBinary
+from sample import Sample
 
 NORTH_SOUTH_REVERSE_GREEN_PHASE = 0
 EAST_WEST_REVERSE_GREEN_PHASE = 2
 
-"""
-Traffic simulation with reinforcement learning while training with Q-learning
-"""
-
 
 class TrafficLightControlSimulation:
-    def __init__(self, Configuration, ModelTest, TrafficGenerator):
-        self.ModelTest = ModelTest
+    def __init__(self, Configuration, ModelTrain, Memory, TrafficGenerator):
+        self.ModelTrain = ModelTrain
+        self.Memory = Memory
         self.Configuration = Configuration
         self.TrafficGenerator = TrafficGenerator
         self.traci = traci
-
+        self.gamma_ = self.Configuration.getGamma()
         self.startTraci = False
         self.step_ = 0
         self.maximumSteps = Configuration.getMaximumSteps()
@@ -27,13 +26,16 @@ class TrafficLightControlSimulation:
 
         self.statesInput = Configuration.getStatesInput()
         self.actionsOutput = Configuration.getActionsOutput()
-
+        self.epochsTraining = Configuration.getEpochsTraining()
         self.rewards = []
         self.cumulativeWaitingTime = []
         self.stepActionStateInformation = []
 
     def getModel(self):
-        return self.ModelTest
+        return self.ModelTrain
+
+    def getMemory(self):
+        return self.Memory
 
     def getConfiguration(self):
         return self.Configuration
@@ -59,7 +61,7 @@ class TrafficLightControlSimulation:
 
         return sumoConfiguration
 
-    def run(self, episode):
+    def run(self, episode, epsilon):
         # DONE
         sumoConfiguration = self.getSumoConfiguration(self.Configuration.getPathSumoConfiguration(),
                                                       self.Configuration.getSumoGui(),
@@ -67,32 +69,35 @@ class TrafficLightControlSimulation:
         # TO DO
         self.setRouteFileSimulation(episode)
         """
-        Starting Traci simulation
-        """
+        # Starting Traci simulation
+        # """
         print("Starting traci simulation ")
-        # DONE
+        # # DONE
         self.setTraciStart(sumoConfiguration)
-
-        # DONE
+        # # DONE
         self.setInitialParametersEpisode()
 
-        # DONE
+        # # DONE
         while self.getStep() < self.getMaximumSteps():
             print("Beginning while ")
             # DONE #
             currentState = self.getStateInformation(self.Configuration.getStatesInput())
-
             print("The current state now  is: .....")
             print(currentState)
 
             currentTotalWaitingTime = self.getCollectiveWaitingTime()
-            print("******* Current total waiting time *************")
-            print(currentTotalWaitingTime)
 
-            # TO DO
-            currentAction = self.getAction(currentState)
+            # DONE
+            reward = self.getPreviousTotalWaitingTime() - currentTotalWaitingTime
+            # DONE
+            # Conditional for correct actions #
+            if self.getStep() != 0:
+                Sample_ = Sample(self.getPreviousState(), self.getPreviousAction(), reward, currentState)
+                self.Memory.setSample(Sample_)
 
-            self.saveInfoPerState(episode, self.getStep(), currentAction, currentState)
+            currentAction = self.getAction(currentState, epsilon)
+
+            self.saveInfoPerState(episode, self.getStep(), currentAction, reward, currentState)
 
             # DONE
             if self.getStep() != 0 and self.getPreviousAction() != currentAction:
@@ -105,20 +110,24 @@ class TrafficLightControlSimulation:
             self.setGreenPhase(currentAction)
             self.setStepsSimulation(self.greenLightDuration)
 
+            self.previousState = currentState
             self.previousAction = currentAction
             self.previousTotalWaitingTime = currentTotalWaitingTime
+            # DONE
+            self.setSumNegativeRewards(reward)
 
             print("End while")
-        # DONE
         self.saveInformationPerEpisode()
-
         """
         Ending Traci Simulation
         """
-
         print("Closing traci simulation ")
-        # DONE
         self.setCloseTraci()
+        """
+        Training neural networks model
+        """
+
+        self.setTraining(self.epochsTraining)
 
     def getStateInformation(self, stateInput):
         if stateInput == 4:
@@ -126,11 +135,12 @@ class TrafficLightControlSimulation:
         elif stateInput == 80:
             return self.getState()
 
-    def saveInfoPerState(self, episode, step, currentAction, currentState):
+    def saveInfoPerState(self, episode, step, currentAction, reward, currentState):
         self.informationPerEpisodeStepActionReward = []
         self.informationPerEpisodeStepActionReward.append(episode)
         self.informationPerEpisodeStepActionReward.append(step)
         self.informationPerEpisodeStepActionReward.append(currentAction)
+        self.informationPerEpisodeStepActionReward.append(reward)
         self.informationStateEpisode.append(
             self.addCurrentState(self.informationPerEpisodeStepActionReward, currentState))
 
@@ -139,11 +149,19 @@ class TrafficLightControlSimulation:
         self.informationWithElementsState.append(informationPerEpisodeStepActionReward[0])
         self.informationWithElementsState.append(informationPerEpisodeStepActionReward[1])
         self.informationWithElementsState.append(informationPerEpisodeStepActionReward[2])
+        self.informationWithElementsState.append(informationPerEpisodeStepActionReward[3])
 
         for stateElements in currentState:
             self.informationWithElementsState.append(stateElements)
 
         return self.informationWithElementsState
+
+    def setTraining(self, epochs):
+        print("Start training with " + str(epochs))
+        for epoch in range(epochs):
+            self.replayTraining()
+
+        print("Finish training with " + str(epochs))
 
     #  DONE
     def setSumNegativeRewards(self, reward):
@@ -162,9 +180,9 @@ class TrafficLightControlSimulation:
     # DONE
     def setInitialParametersEpisode(self):
         self.step_ = 0
-        self.waitingTimes = {}
         self.sumNegativeRewards = 0
         self.sumWaitingTime = 0
+        self.waitingTimes = {}
 
         self.informationStateEpisode = []
         self.previousTotalWaitingTime = 0
@@ -250,19 +268,11 @@ class TrafficLightControlSimulation:
 
     # DONE
     def getLengthQueue(self):
-        """
-        Returns the total number of halting vehicles for the last time step on the given edge.
-        A speed of less than 0.1 m/s is considered a halt. Number of vehicles without movement in a respective edge.
-        """
 
         queueNorth = self.getNumberOfVehiclesWithoutMovement("north_edge_one")
-
         queueSouth = self.getNumberOfVehiclesWithoutMovement("east_edge_one")
-
         queueEast = self.getNumberOfVehiclesWithoutMovement("south_edge_one")
-
         queueWest = self.getNumberOfVehiclesWithoutMovement("west_edge_one")
-
         totalQueue = self.getTotalNumberOfVehiclesWithoutMovement(queueNorth, queueSouth, queueEast, queueWest)
 
         return totalQueue
@@ -277,9 +287,31 @@ class TrafficLightControlSimulation:
         queue = self.getTraci().edge.getLastStepHaltingNumber(edge)
         return queue
 
-    # TO DO # CHECK THIS ****
-    def getAction(self, state):
-        return self.ModelTest.getMaximumActions(self.ModelTest.getPredictionOneState(state))
+    # TO DO
+    def getAction(self, state, epsilon):
+        if random.random() < epsilon:
+            return random.randint(0, self.getActionsOutput() - 1)
+        else:
+            return self.ModelTrain.getMaximumActions(self.ModelTrain.getPredictionOneState(state))
+
+    """
+    Set up movement traffic light ID phase
+    """
+
+    def setPhaseLightId(self, directionTrafficLightHeaderId):
+        """
+        setPhase(self, tlsID, index)
+        """
+        self.getTraci().trafficlight.setPhase("junction_center", directionTrafficLightHeaderId)
+
+    def getStateLengthQueue(self):
+        state = np.zeros(self.statesInput)
+        state[0] = self.getNumberOfVehiclesWithoutMovement("north_edge_one")
+        state[1] = self.getNumberOfVehiclesWithoutMovement("east_edge_one")
+        state[2] = self.getNumberOfVehiclesWithoutMovement("south_edge_one")
+        state[3] = self.getNumberOfVehiclesWithoutMovement("west_edge_one")
+
+        return state
 
     # DONE #
     """
@@ -303,25 +335,6 @@ class TrafficLightControlSimulation:
             self.setPhaseLightId(NORTH_SOUTH_REVERSE_GREEN_PHASE)
         elif action == 1:
             self.setPhaseLightId(EAST_WEST_REVERSE_GREEN_PHASE)
-
-    """
-    Set up movement traffic light ID phase
-    """
-
-    def setPhaseLightId(self, directionTrafficLightHeaderId):
-        """
-        setPhase(self, tlsID, index)
-        """
-        self.getTraci().trafficlight.setPhase("junction_center", directionTrafficLightHeaderId)
-
-    def getStateLengthQueue(self):
-        state = np.zeros(self.statesInput)
-        state[0] = self.getNumberOfVehiclesWithoutMovement("north_edge_one")
-        state[1] = self.getNumberOfVehiclesWithoutMovement("east_edge_one")
-        state[2] = self.getNumberOfVehiclesWithoutMovement("south_edge_one")
-        state[3] = self.getNumberOfVehiclesWithoutMovement("west_edge_one")
-
-        return state
 
     # TBD
     """
@@ -483,7 +496,7 @@ class TrafficLightControlSimulation:
             """
             Returns the accumulated waiting time of a vehicle collects the vehicle's waiting time
             over a certain time interval (interval length is set per option '--waiting-time-memory')
-            e.g. 35.0, 0.0, 51.0, waitingTimes: {'N_S_3': 0.0, 'E_W_11': 28.0, 'W_E_13': 11.0}
+            e.g. 35.0, 0.0, 51.0, waitingTimes: {'N_S_3': 0.0, 'E_W_11': 28.0, 'W_E_13': 11.0, 'W_S_14': 0.0}
             """
             waitingTime = self.getAccumulatedTimePerVehicleIdentification(vehicleIdentification)
             # print("************* Waiting time ****************************")
@@ -496,7 +509,7 @@ class TrafficLightControlSimulation:
             roadIdentification = self.getRoadIdPerVehicleIdentification(vehicleIdentification)
             #  print(roadIdentification)
             """
-            e.g. waitingTimes: {'E_W_1': 0.0, 'E_W_10': 0.0, 'E_W_15': 0.0, 'E_W_4': 0.0}
+            e.g. waitingTimes: {'E_N_7': 0.0, 'E_W_1': 0.0, 'E_W_10': 0.0, 'E_W_15': 0.0, 'E_W_4': 0.0}
             """
             #  print("***************** Waiting times dictionary ******************")
             waitingTimesDictionary = self.getWaitingTimesDictionary(self.waitingTimes, roadsWithTrafficLights,
@@ -531,6 +544,54 @@ class TrafficLightControlSimulation:
     def getAccumulatedTimePerVehicleIdentification(self, vehicleIdentication):
         waitingTime = self.getTraci().vehicle.getAccumulatedWaitingTime(vehicleIdentication)
         return waitingTime
+
+    # DONE
+    def replayTraining(self):
+        # Array of samples
+        batch = self.Memory.getSamples(self.ModelTrain.getBatchSize())
+
+        if len(batch) > 0:
+            print(" Batch ....")
+            print(batch)
+            #   Find state from the samples
+            states = self.getStatesFromSamplesInBatch(batch)
+            print(" States ...")
+            print(states)
+            nextStates = self.getNewStatesFromSamplesInBatch(batch)
+            print("Next states ...")
+            print(nextStates)
+
+            q = self.ModelTrain.getPredictionBatch(states)
+            qPrime = self.ModelTrain.getPredictionBatch(nextStates)
+
+            # Initialize
+            states = np.zeros((len(batch), self.statesInput))
+            qTarget = np.zeros((len(batch), self.getActionsOutput()))
+            # In the batch, there are different samples
+            for position, sample in enumerate(batch):
+                state = sample.getPreviousState()
+                action = sample.getPreviousAction()
+                reward = sample.getReward()
+                currentQ = q[position]  # array: [0.8 0.3]
+                currentQ[action] = reward + self.gamma_ * np.amax(qPrime[position])
+                states[position] = state
+                qTarget[position] = currentQ
+
+            self.ModelTrain.getTrainBatch(states, qTarget)
+
+    def getStatesFromSamplesInBatch(self, batch):
+        statesFromSamplesInBatch = []
+        for sample in batch:
+            statesFromSamplesInBatch.append(sample.getPreviousState())
+
+        return np.array(statesFromSamplesInBatch)
+
+    def getNewStatesFromSamplesInBatch(self, batch):
+        newStatesFromSampleInBatch = []
+        for sample in batch:
+            newStatesFromSampleInBatch.append(sample.getCurrentState())
+
+        return np.array(newStatesFromSampleInBatch)
 
     # DONE
     def saveInformationPerEpisode(self):

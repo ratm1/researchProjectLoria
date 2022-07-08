@@ -11,7 +11,8 @@ Traffic simulation without reinforcement learning
 NORTH_SOUTH_REVERSE_GREEN_PHASE = 0
 EAST_WEST_REVERSE_GREEN_PHASE = 2
 
-class TrafficLightControlSimulation:
+
+class TrafficLightControl:
     def __init__(self, Configuration, TrafficGenerator):
         self.Configuration = Configuration
         self.TrafficGenerator = TrafficGenerator
@@ -25,20 +26,25 @@ class TrafficLightControlSimulation:
         self.actionsOutput = Configuration.getActionsOutput()
         self.cumulativeWaitingTime = []
         self.stepActionInformation = []
+
     """
     Returns configuration for the TrafficLightControlSimulation
     """
+
     def getConfiguration(self):
         return self.Configuration
+
     """
     Returns traffic generator for the TrafficLightControlSimulation
     """
+
     def getTrafficGenerator(self):
         return self.TrafficGenerator
 
     """
     Returns the sumo configuration for the TrafficLightControlSimulation
     """
+
     def getSumoConfiguration(self, pathSumoConfiguration, sumoGui, maximumNumberSteps):
         if 'SUMO_HOME' in os.environ:
             tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -55,60 +61,6 @@ class TrafficLightControlSimulation:
                              "true", "--waiting-time-memory", str(maximumNumberSteps)]
 
         return sumoConfiguration
-
-    """
-    Run the traffic light simulation
-    """
-    def run(self, episode):
-        # DONE
-        sumoConfiguration = self.getSumoConfiguration(self.Configuration.getPathSumoConfiguration(),
-                                                      self.Configuration.getSumoGui(),
-                                                      self.Configuration.getMaximumSteps())
-        # TO DO
-        self.setRouteFileSimulation(episode)
-        """
-        Starting Traci simulation
-        """
-        print("Starting traci simulation ")
-        # DONE
-        self.setTraciStart(sumoConfiguration)
-
-        # DONE
-        self.setInitialParametersEpisode()
-
-        # DONE
-        while self.getStep() < self.getMaximumSteps():
-            print("Beginning while ")
-
-            # TO DO
-            currentAction = self.getAction(self.getStep())
-
-            self.saveInfoPerState(episode,self.getStep(), currentAction)
-
-            # DONE
-            if self.getStep() != 0 and self.getPreviousAction() != currentAction:
-                # DONE
-                self.setYellowPhase(self.getPreviousAction())
-                # DONE
-                self.setStepsSimulation(self.yellowLightDuration)
-
-            # DONE
-            self.setGreenPhase(currentAction)
-            # TO DO PARTIALLY
-            self.setStepsSimulation(self.greenLightDuration)
-
-            self.previousAction = currentAction
-
-            print("End while")
-        # DONE
-        self.saveInformationPerEpisode()
-
-        """
-        Ending Traci Simulation
-        """
-        print("Closing traci simulation ")
-        # DONE
-        self.setCloseTraci()
 
     # DONE HERE
     def setCloseTraci(self):
@@ -140,7 +92,7 @@ class TrafficLightControlSimulation:
     def setRouteFileSimulation(self, episode):
         self.TrafficGenerator.setRouteFileSimulation(episode)
 
-    def saveInfoPerState(self,  episode,  step, currentAction):
+    def saveInfoPerState(self, episode, step, currentAction):
         self.informationPerStateStep = []
         self.informationPerStateStep.append(episode)
         self.informationPerStateStep.append(step)
@@ -241,6 +193,7 @@ class TrafficLightControlSimulation:
     """
     Set up the yellow color in the traffic light according to the .net.xml file
     """
+
     def setYellowPhase(self, previousAction):
         yellowPhasePositionTrafficLightId = previousAction + 1
         self.setPhaseLightId(yellowPhasePositionTrafficLightId)
@@ -262,6 +215,7 @@ class TrafficLightControlSimulation:
     """
     Set up movement traffic light ID phase
     """
+
     # TBD HERE
     def setPhaseLightId(self, directionTrafficLightHeaderId):
         """

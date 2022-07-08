@@ -1,9 +1,6 @@
 import unittest
-
-import numpy as np
-from numpy import array
-
 from memory import Memory
+from sample import Sample
 from configuration import Configuration
 from trafficLightControlSimulationTraining import TrafficLightControlSimulation
 from model import ModelTrain
@@ -14,53 +11,37 @@ class TestMemory(unittest.TestCase):
     def testSetSampleMemory(self):
         """
         Minimum memory size: 1
-        Maximum memory size: 2
+        Maximum memory size: 5
         """
-        Memory_ = Memory(1, 2)
+        Memory_ = Memory(1, 5)
         """
-        Sample is a tuple
-        (previousState, previousAction, reward, currentState)
+        Sample
         """
-        sample = ([], 0, -10, [])
+        sample_ = Sample([], 0, -10, [])
         """
         Test Memory has no samples
         """
         self.assertEqual(Memory_.getSamplesSizeMemory(), 0)
-        Memory_.setSample(sample)
+        Memory_.setSample(sample_)
         """
         Test Memory has one sample
         """
         self.assertEqual(Memory_.getSamplesSizeMemory(), 1)
-        Memory_.setSample(sample)
-        Memory_.setSample(sample)
+        Memory_.setSample(sample_)
+        Memory_.setSample(sample_)
         """
         Test Memory the samples are more than the maximum setup
         """
-        self.assertEqual(Memory_.getSamplesSizeMemory(), 2)
+        self.assertEqual(Memory_.getSamplesSizeMemory(), 3)
 
     def testMinimumSizeMemory(self):
-        Memory_ = Memory(1, 3)
+        Memory_ = Memory(1, 7)
         self.assertEqual(Memory_.getMinimumSizeMemory(), 1)
 
     def testMaximumSizeMemory(self):
-        Memory_ = Memory(1, 3)
-        self.assertEqual(Memory_.getMaximumSizeMemory(), 3)
+        Memory_ = Memory(1, 7)
+        self.assertEqual(Memory_.getMaximumSizeMemory(), 7)
 
-    def testSampleSizeMemory(self):
-        Memory_ = Memory(1, 6)
-        sample = ([], 1, -10, [])
-        Memory_.setSample(sample)
-        Memory_.setSample(sample)
-        self.assertEqual(Memory_.getSamplesSizeMemory(), 2)
-
-    def testAllSamples(self):
-        Memory_ = Memory(2, 7)
-        sampleOne = ([], 0, -10, [])
-        sampleTwo = ([], 1, -7, [])
-        Memory_.setSample(sampleOne)
-        Memory_.setSample(sampleTwo)
-        ### All the samples are in an array of tuples ###
-        self.assertEqual(Memory_.getAllSamples(), [([], 0, -10, []), ([], 1, -7, [])])
 
     def testSamples(self):
         Memory_ = Memory(1, 2)
@@ -72,12 +53,12 @@ class TestMemory(unittest.TestCase):
         Sample is a tuple
         (previousState, previousAction, reward, currentState)
         """
-        sampleOne = ([], 0, -10, [])
+        sample_ = Sample([], 0, -10, [])
 
-        Memory_.setSample(sampleOne)
+        Memory_.setSample(sample_)
         self.assertEqual(len(Memory_.getSamples(2)), 1)
 
-        Memory_.setSample(sampleOne)
+        Memory_.setSample(sample_)
         self.assertEqual(len(Memory_.getSamples(2)), 2)
 
 
@@ -136,7 +117,7 @@ class TestConfiguration(unittest.TestCase):
 
     def testEpochsTraining(self):
         Configuration_ = Configuration(False, 0, 0, 0, 0, 0, 0, 0, 0,
-                                       0, 550, 0, 0, 0, 0, 0, './', './')
+                                       0, 600, 0, 0, 0, 0, 0, './', './')
 
         self.assertEqual(Configuration_.getEpochsTraining(), 600)
 
@@ -176,60 +157,60 @@ class TestConfiguration(unittest.TestCase):
                                        0, 0, 0, 0, 0, 0, 0, './', './environment/sumo_config.sumocfg')
         self.assertEqual(Configuration_.getPathSumoConfiguration(), './environment/sumo_config.sumocfg')
 
-
-class TrafficSimulationTesting:
-    def __init__(self):
-        self.Configuration_ = Configuration(False, 300, 700, 30, 10, 4, 200, 200, 50, 0.001,
-                                            800, 100, 50000, 80, 2, 0.75, './models', 'sumo_config.sumocfg')
-
-        self.ModelTrain_ = ModelTrain(self.Configuration_.getFirstLayerWidth(),
-                                      self.Configuration_.getSecondLayerWidth(),
-                                      self.Configuration_.getBatchSize(),
-                                      self.Configuration_.getLearningRate(), self.Configuration_.getStatesInput(),
-                                      self.Configuration_.getActionsOutput())
-
-        self.Memory_ = Memory(self.Configuration_.getMinimumMemorySize(), self.Configuration_.getMaximumMemorySize())
-
-        self.TrafficGenerator_ = TrafficGenerator(self.Configuration_.getMaximumSteps(),
-                                                  self.Configuration_.getCarsGenerated())
-
-        self.TrafficLightControlSimulation_ = TrafficLightControlSimulation(self.Configuration_, self.ModelTrain_,
-                                                                            self.Memory_,
-                                                                            self.TrafficGenerator_)
-
-    def getTrafficLightControlSimulation(self):
-        return self.TrafficLightControlSimulation_
-
-
-class TestTrafficLightControlSimulation(unittest.TestCase):
-    def testTrafficLightControlSumoConfiguration(self):
-        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-        """
-        Test sumo configuration
-        """
-        self.assertEqual(TrafficLightControlSimulation_.getSumoConfiguration(
-            TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
-            TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
-            TrafficLightControlSimulation_.getConfiguration().getMaximumSteps()),
-            ['sumo', "-c", 'environment/sumo_config.sumocfg',
-             "--no-step-log", "true", "--waiting-time-memory", '700'])
-
-    def testTrafficLightControlMaximumSteps(self):
-        """
-        Test maximum steps in the simulation
-        """
-        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-        self.assertEqual(TrafficLightControlSimulation_.getMaximumSteps(), 700)
-
-
-
-    def testTrafficLightControlSteps(self):
-        """
-         Test steps in the simulation
-         """
-        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-
-        self.assertEqual(TrafficLightControlSimulation_.getStep(), 0)
+#
+# class TrafficSimulationTesting:
+#     def __init__(self):
+#         self.Configuration_ = Configuration(False, 300, 700, 30, 10, 4, 200, 200, 50, 0.001,
+#                                             800, 100, 50000, 80, 2, 0.75, './models', 'sumo_config.sumocfg')
+#
+#         self.ModelTrain_ = ModelTrain(self.Configuration_.getFirstLayerWidth(),
+#                                       self.Configuration_.getSecondLayerWidth(),
+#                                       self.Configuration_.getBatchSize(),
+#                                       self.Configuration_.getLearningRate(), self.Configuration_.getStatesInput(),
+#                                       self.Configuration_.getActionsOutput())
+#
+#         self.Memory_ = Memory(self.Configuration_.getMinimumMemorySize(), self.Configuration_.getMaximumMemorySize())
+#
+#         self.TrafficGenerator_ = TrafficGenerator(self.Configuration_.getMaximumSteps(),
+#                                                   self.Configuration_.getCarsGenerated())
+#
+#         self.TrafficLightControlSimulation_ = TrafficLightControlSimulation(self.Configuration_, self.ModelTrain_,
+#                                                                             self.Memory_,
+#                                                                             self.TrafficGenerator_)
+#
+#     def getTrafficLightControlSimulation(self):
+#         return self.TrafficLightControlSimulation_
+#
+#
+# class TestTrafficLightControlSimulation(unittest.TestCase):
+#     def testTrafficLightControlSumoConfiguration(self):
+#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+#         """
+#         Test sumo configuration
+#         """
+#         self.assertEqual(TrafficLightControlSimulation_.getSumoConfiguration(
+#             TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
+#             TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
+#             TrafficLightControlSimulation_.getConfiguration().getMaximumSteps()),
+#             ['sumo', "-c", 'environment/sumo_config.sumocfg',
+#              "--no-step-log", "true", "--waiting-time-memory", '700'])
+#
+#     def testTrafficLightControlMaximumSteps(self):
+#         """
+#         Test maximum steps in the simulation
+#         """
+#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+#         self.assertEqual(TrafficLightControlSimulation_.getMaximumSteps(), 700)
+#
+#
+#
+#     def testTrafficLightControlSteps(self):
+#         """
+#          Test steps in the simulation
+#          """
+#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+#
+#         self.assertEqual(TrafficLightControlSimulation_.getStep(), 0)
 #
 #     def testTrafficLightActionsOutput(self):
 #         """
