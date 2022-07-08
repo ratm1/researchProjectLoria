@@ -9,6 +9,7 @@ from sample import Sample
 NORTH_SOUTH_REVERSE_GREEN_PHASE = 0
 EAST_WEST_REVERSE_GREEN_PHASE = 2
 
+
 class TrafficLightControlSimulation:
     def __init__(self, Configuration, ModelTrain, Memory, TrafficGenerator):
         self.ModelTrain = ModelTrain
@@ -73,7 +74,6 @@ class TrafficLightControlSimulation:
         print("Starting traci simulation ")
         # # DONE
         self.setTraciStart(sumoConfiguration)
-
         # # DONE
         self.setInitialParametersEpisode()
 
@@ -89,7 +89,6 @@ class TrafficLightControlSimulation:
 
             # DONE
             reward = self.getPreviousTotalWaitingTime() - currentTotalWaitingTime
-
             # DONE
             # Conditional for correct actions #
             if self.getStep() != 0:
@@ -128,7 +127,7 @@ class TrafficLightControlSimulation:
         Training neural networks model
         """
 
-    #    self.setTraining(self.epochsTraining)
+        self.setTraining(self.epochsTraining)
 
     def getStateInformation(self, stateInput):
         if stateInput == 4:
@@ -546,39 +545,39 @@ class TrafficLightControlSimulation:
         waitingTime = self.getTraci().vehicle.getAccumulatedWaitingTime(vehicleIdentication)
         return waitingTime
 
-    # TO DO #  CHECK THIS ****
+    # DONE
     def replayTraining(self):
         # Array of samples
         batch = self.Memory.getSamples(self.ModelTrain.getBatchSize())
 
-        #    if len(batch) > 0:
-        print(" Batch ....")
-        print(batch)
-        # Find state from the samples
-        states = self.getStatesFromSamplesInBatch(batch)
-        print(" States ...")
-        print(states)
-        nextStates = self.getNewStatesFromSamplesInBatch(batch)
-        print("Next states ...")
-        print(nextStates)
+        if len(batch) > 0:
+            print(" Batch ....")
+            print(batch)
+            #   Find state from the samples
+            states = self.getStatesFromSamplesInBatch(batch)
+            print(" States ...")
+            print(states)
+            nextStates = self.getNewStatesFromSamplesInBatch(batch)
+            print("Next states ...")
+            print(nextStates)
 
-        q = self.ModelTrain.getPredictionBatch(states)
-        qPrime = self.ModelTrain.getPredictionBatch(nextStates)
+            q = self.ModelTrain.getPredictionBatch(states)
+            qPrime = self.ModelTrain.getPredictionBatch(nextStates)
 
-        # Initialize
-        states = np.zeros((len(batch), self.statesInput))
-        qTarget = np.zeros((len(batch), self.getActionsOutput()))
-        # In the batch, there are different samples
-        for position, sample in enumerate(batch):
-            state = sample.getPreviousState()
-            action = sample.getPreviousAction()
-            reward = sample.getReward()
-            currentQ = q[position]  # array: [0.8 0.3]
-            currentQ[action] = reward + self.gamma_ * np.amax(qPrime[position])
-            states[position] = state
-            qTarget[position] = currentQ
+            # Initialize
+            states = np.zeros((len(batch), self.statesInput))
+            qTarget = np.zeros((len(batch), self.getActionsOutput()))
+            # In the batch, there are different samples
+            for position, sample in enumerate(batch):
+                state = sample.getPreviousState()
+                action = sample.getPreviousAction()
+                reward = sample.getReward()
+                currentQ = q[position]  # array: [0.8 0.3]
+                currentQ[action] = reward + self.gamma_ * np.amax(qPrime[position])
+                states[position] = state
+                qTarget[position] = currentQ
 
-        self.ModelTrain.getTrainBatch(states, qTarget)
+            self.ModelTrain.getTrainBatch(states, qTarget)
 
     def getStatesFromSamplesInBatch(self, batch):
         statesFromSamplesInBatch = []
