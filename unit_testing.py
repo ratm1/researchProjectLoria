@@ -157,148 +157,109 @@ class TestConfiguration(unittest.TestCase):
                                        0, 0, 0, 0, 0, 0, 0, './', './environment/sumo_config.sumocfg')
         self.assertEqual(Configuration_.getPathSumoConfiguration(), './environment/sumo_config.sumocfg')
 
-#
-# class TrafficSimulationTesting:
-#     def __init__(self):
-#         self.Configuration_ = Configuration(False, 300, 700, 30, 10, 4, 200, 200, 50, 0.001,
-#                                             800, 100, 50000, 80, 2, 0.75, './models', 'sumo_config.sumocfg')
-#
-#         self.ModelTrain_ = ModelTrain(self.Configuration_.getFirstLayerWidth(),
-#                                       self.Configuration_.getSecondLayerWidth(),
-#                                       self.Configuration_.getBatchSize(),
-#                                       self.Configuration_.getLearningRate(), self.Configuration_.getStatesInput(),
-#                                       self.Configuration_.getActionsOutput())
-#
-#         self.Memory_ = Memory(self.Configuration_.getMinimumMemorySize(), self.Configuration_.getMaximumMemorySize())
-#
-#         self.TrafficGenerator_ = TrafficGenerator(self.Configuration_.getMaximumSteps(),
-#                                                   self.Configuration_.getCarsGenerated())
-#
-#         self.TrafficLightControlSimulation_ = TrafficLightControlSimulation(self.Configuration_, self.ModelTrain_,
-#                                                                             self.Memory_,
-#                                                                             self.TrafficGenerator_)
-#
-#     def getTrafficLightControlSimulation(self):
-#         return self.TrafficLightControlSimulation_
-#
-#
-# class TestTrafficLightControlSimulation(unittest.TestCase):
-#     def testTrafficLightControlSumoConfiguration(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         """
-#         Test sumo configuration
-#         """
-#         self.assertEqual(TrafficLightControlSimulation_.getSumoConfiguration(
-#             TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
-#             TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
-#             TrafficLightControlSimulation_.getConfiguration().getMaximumSteps()),
-#             ['sumo', "-c", 'environment/sumo_config.sumocfg',
-#              "--no-step-log", "true", "--waiting-time-memory", '700'])
-#
-#     def testTrafficLightControlMaximumSteps(self):
-#         """
-#         Test maximum steps in the simulation
-#         """
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(TrafficLightControlSimulation_.getMaximumSteps(), 700)
-#
-#
-#
-#     def testTrafficLightControlSteps(self):
-#         """
-#          Test steps in the simulation
-#          """
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#
-#         self.assertEqual(TrafficLightControlSimulation_.getStep(), 0)
-#
-#     def testTrafficLightActionsOutput(self):
-#         """
-#         Test number of actions output
-#         """
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(TrafficLightControlSimulation_.getActionsOutput(), 2)
-#
-#     def testTrafficLightTraciStartAndStop(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         sumoConfiguration = TrafficLightControlSimulation_.getSumoConfiguration(
-#             TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
-#             TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
-#             TrafficLightControlSimulation_.getConfiguration().getMaximumSteps())
-#
-#         TrafficLightControlSimulation_.setRouteFileSimulation(1)
-#         TrafficLightControlSimulation_.setTraciStart(sumoConfiguration)
-#         self.assertEqual(TrafficLightControlSimulation_.getTraciStart(), True)
-#         TrafficLightControlSimulation_.setCloseTraci()
-#         self.assertEqual(TrafficLightControlSimulation_.getTraciStart(), False)
-#
-#     def testTrafficLightInitialParametersEpisode(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         TrafficLightControlSimulation_.setInitialParametersEpisode()
-#         self.assertEqual(TrafficLightControlSimulation_.getStep(), 0)
-#         self.assertEqual(TrafficLightControlSimulation_.getWaitingTimes(), {})
-#         self.assertEqual(TrafficLightControlSimulation_.getSumNegativeRewards(), 0)
-#
-#         self.assertEqual(TrafficLightControlSimulation_.getSumWaitingTime(), 0)
-#         self.assertEqual(TrafficLightControlSimulation_.getPreviousTotalWaitingTime(), 0)
-#
-#         self.assertEqual(TrafficLightControlSimulation_.getPreviousState(), -1)
-#         self.assertEqual(TrafficLightControlSimulation_.getPreviousAction(), -1)
-#
-#     def testTrafficLightVehicleIdList(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         sumoConfiguration = TrafficLightControlSimulation_.getSumoConfiguration(
-#             TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
-#             TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
-#             TrafficLightControlSimulation_.getConfiguration().getMaximumSteps())
-#
-#         TrafficLightControlSimulation_.setRouteFileSimulation(1)
-#         TrafficLightControlSimulation_.setTraciStart(sumoConfiguration)
-#         """
-#         Test vehicle id list
-#         """
-#         self.assertIsInstance(TrafficLightControlSimulation_.getVehiclesIdList(), tuple)
-#         TrafficLightControlSimulation_.setCloseTraci()
-#
-#     def testTrafficLightLanePositionAndId(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         sumoConfiguration = TrafficLightControlSimulation_.getSumoConfiguration(
-#             TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
-#             TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
-#             TrafficLightControlSimulation_.getConfiguration().getMaximumSteps())
-#
-#         TrafficLightControlSimulation_.setRouteFileSimulation(1)
-#         TrafficLightControlSimulation_.setTraciStart(sumoConfiguration)
-#         """
-#         Test lane position
-#         """
-#         self.assertIsInstance(TrafficLightControlSimulation_.getLanePosition('N_S_0'), float)
-#
-#         """
-#         Test lane id
-#         """
-#         self.assertIsInstance(TrafficLightControlSimulation_.getLaneId('N_S_0'), str)
-#         TrafficLightControlSimulation_.setCloseTraci()
-#
-#     def testTrafficLightWaitingTimeRoadIdentification(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         sumoConfiguration = TrafficLightControlSimulation_.getSumoConfiguration(
-#             TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
-#             TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
-#             TrafficLightControlSimulation_.getConfiguration().getMaximumSteps())
-#
-#         TrafficLightControlSimulation_.setRouteFileSimulation(1)
-#         TrafficLightControlSimulation_.setTraciStart(sumoConfiguration)
-#         """
-#         Test lane position
-#         """
-#         self.assertIsInstance(TrafficLightControlSimulation_.getAccumulatedTimePerVehicleIdentification('N_S_0'), float)
-#
-#         """
-#         Test lane id
-#         """
-#         self.assertIsInstance(TrafficLightControlSimulation_.getRoadIdPerVehicleIdentification('N_S_0'), str)
-#         TrafficLightControlSimulation_.setCloseTraci()
+
+class TrafficSimulationTesting:
+    def __init__(self):
+        self.Configuration_ = Configuration(False, 300, 700, 30, 10, 4, 200, 200, 50, 0.001,
+                                            800, 100, 50000, 80, 2, 0.75, './models', 'sumo_config.sumocfg')
+
+        self.ModelTrain_ = ModelTrain(self.Configuration_.getFirstLayerWidth(),
+                                      self.Configuration_.getSecondLayerWidth(),
+                                      self.Configuration_.getBatchSize(),
+                                      self.Configuration_.getLearningRate(), self.Configuration_.getStatesInput(),
+                                      self.Configuration_.getActionsOutput())
+
+        self.Memory_ = Memory(self.Configuration_.getMinimumMemorySize(), self.Configuration_.getMaximumMemorySize())
+
+        self.TrafficGenerator_ = TrafficGenerator(self.Configuration_.getMaximumSteps(),
+                                                  self.Configuration_.getCarsGenerated())
+
+        self.TrafficLightControlSimulation_ = TrafficLightControlSimulation(self.Configuration_, self.ModelTrain_,
+                                                                            self.Memory_,
+                                                                            self.TrafficGenerator_)
+
+    def getTrafficLightControlSimulation(self):
+        return self.TrafficLightControlSimulation_
+
+
+class TestTrafficLightControlSimulation(unittest.TestCase):
+    def testTrafficLightControlSumoConfiguration(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        """
+        Test sumo configuration
+        """
+        self.assertEqual(TrafficLightControlSimulation_.getSumoConfiguration(
+            TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
+            TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
+            TrafficLightControlSimulation_.getConfiguration().getMaximumSteps()),
+            ['sumo', "-c", 'environment/sumo_config.sumocfg',
+             "--no-step-log", "true", "--waiting-time-memory", '700'])
+
+    def testTrafficLightControlMaximumSteps(self):
+        """
+        Test maximum steps in the simulation
+        """
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(TrafficLightControlSimulation_.getMaximumSteps(), 700)
+
+
+
+    def testTrafficLightControlSteps(self):
+        """
+         Test steps in the simulation
+         """
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+
+        self.assertEqual(TrafficLightControlSimulation_.getStep(), 0)
+
+    def testTrafficLightActionsOutput(self):
+        """
+        Test number of actions output
+        """
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(TrafficLightControlSimulation_.getActionsOutput(), 2)
+
+    def testTrafficLightTraciStartAndStop(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        sumoConfiguration = TrafficLightControlSimulation_.getSumoConfiguration(
+            TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
+            TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
+            TrafficLightControlSimulation_.getConfiguration().getMaximumSteps())
+
+        TrafficLightControlSimulation_.setRouteFileSimulation(1)
+        TrafficLightControlSimulation_.setTraciStart(sumoConfiguration)
+        self.assertEqual(TrafficLightControlSimulation_.getTraciStart(), True)
+        TrafficLightControlSimulation_.setCloseTraci()
+        self.assertEqual(TrafficLightControlSimulation_.getTraciStart(), False)
+
+    def testTrafficLightInitialParametersEpisode(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        TrafficLightControlSimulation_.setInitialParametersEpisode()
+        self.assertEqual(TrafficLightControlSimulation_.getStep(), 0)
+        self.assertEqual(TrafficLightControlSimulation_.getWaitingTimes(), {})
+        self.assertEqual(TrafficLightControlSimulation_.getSumNegativeRewards(), 0)
+
+        self.assertEqual(TrafficLightControlSimulation_.getSumWaitingTime(), 0)
+        self.assertEqual(TrafficLightControlSimulation_.getPreviousTotalWaitingTime(), 0)
+
+        self.assertEqual(TrafficLightControlSimulation_.getPreviousState(), -1)
+        self.assertEqual(TrafficLightControlSimulation_.getPreviousAction(), -1)
+
+    def testTrafficLightVehicleIdList(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        sumoConfiguration = TrafficLightControlSimulation_.getSumoConfiguration(
+            TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
+            TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
+            TrafficLightControlSimulation_.getConfiguration().getMaximumSteps())
+
+        TrafficLightControlSimulation_.setRouteFileSimulation(1)
+        TrafficLightControlSimulation_.setTraciStart(sumoConfiguration)
+        """
+        Test vehicle id list
+        """
+        self.assertIsInstance(TrafficLightControlSimulation_.getVehiclesIdList(), tuple)
+        TrafficLightControlSimulation_.setCloseTraci()
+
 #
 #     def testTrafficLightCellLane(self):
 #         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()

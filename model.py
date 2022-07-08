@@ -96,7 +96,8 @@ class ModelTest:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def getLoadingModel(self, modelFolderPath, numberExperiment, episode):
-        return torch.load(modelFolderPath + '/trainedModel_' + str(numberExperiment) + '_' + str(episode) + '.pt')
+        print(modelFolderPath + '/trainedModel_' + str(numberExperiment) + '_' + str(episode) + '.pt')
+        return torch.load(modelFolderPath + '/trainedModel_' + str(numberExperiment) + '_' + str(episode) + '.pt', map_location=torch.device('cpu') )
 
     def getPredictionOneState(self, state):
         newState = torch.from_numpy(state.astype(np.float32))

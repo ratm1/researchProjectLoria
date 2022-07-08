@@ -11,7 +11,7 @@ class Experiment:
         # Low Traffic: 500 cars
         # Experiment 1
         if self.getNumberExperiment() == 1:
-            Configuration_ = Configuration(False, 400, 5000, 500, 11, 4, 200, 200, 100, 0.001,
+            Configuration_ = Configuration(False, 2, 5000, 500, 11, 4, 200, 200, 100, 0.001,
                                            600, 500, 50000, self.numberInput, 2, 0.50, self.getPathExperiment(), 'sumo_config.sumocfg')
         # Experiment 2
         elif self.getNumberExperiment() == 2:

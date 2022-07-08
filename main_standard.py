@@ -1,6 +1,6 @@
 import sys
 from traffic import TrafficGenerator
-from trafficLightControlStandardCopy import TrafficLightControlSimulation
+from trafficLightControlStandard import TrafficLightControlSimulation
 from plot import Plot
 from experiment import Experiment
 

@@ -1,63 +1,25 @@
-import sys
-import traci
 import numpy as np
-import os
-from sumolib import checkBinary
-
-NORTH_SOUTH_REVERSE_GREEN_PHASE = 0
-EAST_WEST_REVERSE_GREEN_PHASE = 2
+from trafficLightControl import TrafficLightControl
 
 """
 Traffic simulation with reinforcement learning while training with Q-learning
 """
 
 
-class TrafficLightControlSimulation:
+class TrafficLightControlSimulation(TrafficLightControl):
     def __init__(self, Configuration, ModelTest, TrafficGenerator):
+        super().__init__(Configuration, TrafficGenerator)
         self.ModelTest = ModelTest
-        self.Configuration = Configuration
-        self.TrafficGenerator = TrafficGenerator
-        self.traci = traci
-
-        self.startTraci = False
-        self.step_ = 0
-        self.maximumSteps = Configuration.getMaximumSteps()
-        self.greenLightDuration = Configuration.getGreenLightDuration()
-        self.yellowLightDuration = Configuration.getYellowLightDuration()
+        self.gamma_ = self.Configuration.getGamma()
 
         self.statesInput = Configuration.getStatesInput()
-        self.actionsOutput = Configuration.getActionsOutput()
-
+        self.epochsTraining = Configuration.getEpochsTraining()
         self.rewards = []
         self.cumulativeWaitingTime = []
         self.stepActionStateInformation = []
 
     def getModel(self):
         return self.ModelTest
-
-    def getConfiguration(self):
-        return self.Configuration
-
-    def getTrafficGenerator(self):
-        return self.TrafficGenerator
-
-    # DONE #
-    def getSumoConfiguration(self, pathSumoConfiguration, sumoGui, maximumSteps):
-        if 'SUMO_HOME' in os.environ:
-            tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
-            sys.path.append(tools)
-        else:
-            sys.exit(" It is necessary to be declared the variable 'SUMO_HOME'")
-
-        if not sumoGui:
-            binarySumo = checkBinary('sumo')
-        else:
-            binarySumo = checkBinary('sumo-gui')
-
-        sumoConfiguration = [binarySumo, "-c", os.path.join('environment', pathSumoConfiguration), "--no-step-log",
-                             "true", "--waiting-time-memory", str(maximumSteps)]
-
-        return sumoConfiguration
 
     def run(self, episode):
         # DONE
@@ -92,7 +54,8 @@ class TrafficLightControlSimulation:
             # TO DO
             currentAction = self.getAction(currentState)
 
-            self.saveInfoPerState(episode, self.getStep(), currentAction, currentState)
+            print(currentAction)
+            self.saveInfoPerStateTesting(episode, self.getStep(), currentAction, currentState)
 
             # DONE
             if self.getStep() != 0 and self.getPreviousAction() != currentAction:
@@ -126,7 +89,7 @@ class TrafficLightControlSimulation:
         elif stateInput == 80:
             return self.getState()
 
-    def saveInfoPerState(self, episode, step, currentAction, currentState):
+    def saveInfoPerStateTesting(self, episode, step, currentAction, currentState):
         self.informationPerEpisodeStepActionReward = []
         self.informationPerEpisodeStepActionReward.append(episode)
         self.informationPerEpisodeStepActionReward.append(step)
@@ -144,20 +107,6 @@ class TrafficLightControlSimulation:
             self.informationWithElementsState.append(stateElements)
 
         return self.informationWithElementsState
-
-    #  DONE
-    def setSumNegativeRewards(self, reward):
-        if reward < 0:
-            self.sumNegativeRewards += reward
-
-    # DONE
-    def setSumWaitingTime(self, lengthQueue):
-        self.sumWaitingTime += lengthQueue
-
-    # DONE
-    def setCloseTraci(self):
-        self.getTraci().close()
-        self.startTraci = False
 
     # DONE
     def setInitialParametersEpisode(self):
@@ -180,10 +129,6 @@ class TrafficLightControlSimulation:
         return self.previousState
 
     # DONE
-    def getPreviousAction(self):
-        return self.previousAction
-
-    # DONE
     def getWaitingTimes(self):
         return self.waitingTimes
 
@@ -196,123 +141,12 @@ class TrafficLightControlSimulation:
         return self.sumWaitingTime
 
     # DONE
-
-    def getTraci(self):
-        return self.traci
-
-    # DONE
-    def setTraciStart(self, sumoConfiguration):
-        self.getTraci().start(sumoConfiguration)
-        self.startTraci = True
-
-    # DONE
     def getTraciStart(self):
         return self.startTraci
 
     # TO DO
-    def setRouteFileSimulation(self, episode):
-        self.TrafficGenerator.setRouteFileSimulation(episode)
-
-    # DONE  #
-    def setStepsSimulation(self, stepsLightDuration):
-        totalStepsSimulation = self.getTotalStepsSimulationGivenMaximumSteps(self.getStep(), stepsLightDuration,
-                                                                             self.getMaximumSteps())
-        # DONE
-        while totalStepsSimulation > 0:
-            self.setTraciSimulationStep()
-            self.setStepPerEpisode(1)
-            totalStepsSimulation -= 1
-            self.setSumWaitingTime(self.getLengthQueue())
-
-    # DONE
-    def setTraciSimulationStep(self):
-        self.getTraci().simulationStep()
-
-    # DONE
-    def setStepPerEpisode(self, value):
-        self.step_ += value
-
-    # DONE
-    def getTotalStepsSimulationGivenMaximumSteps(self, steps, stepsLightDuration, maximumSteps):
-        totalStepsSimulation = steps + stepsLightDuration
-
-        if totalStepsSimulation >= maximumSteps:
-            totalStepsSimulation = self.getTotalStepsSimulationWhenHigherThanMaximumSteps(maximumSteps, steps)
-        else:
-            totalStepsSimulation = stepsLightDuration
-
-        return totalStepsSimulation
-
-    #  DONE
-    def getTotalStepsSimulationWhenHigherThanMaximumSteps(self, maximumSteps, step):
-        totalStepsSimulation = maximumSteps - step
-        return totalStepsSimulation
-
-    # DONE
-    def getLengthQueue(self):
-        """
-        Returns the total number of halting vehicles for the last time step on the given edge.
-        A speed of less than 0.1 m/s is considered a halt. Number of vehicles without movement in a respective edge.
-        """
-
-        queueNorth = self.getNumberOfVehiclesWithoutMovement("north_edge_one")
-
-        queueSouth = self.getNumberOfVehiclesWithoutMovement("east_edge_one")
-
-        queueEast = self.getNumberOfVehiclesWithoutMovement("south_edge_one")
-
-        queueWest = self.getNumberOfVehiclesWithoutMovement("west_edge_one")
-
-        totalQueue = self.getTotalNumberOfVehiclesWithoutMovement(queueNorth, queueSouth, queueEast, queueWest)
-
-        return totalQueue
-
-    # DONE
-    def getTotalNumberOfVehiclesWithoutMovement(self, queueNorth, queueSouth, queueEast, queueWest):
-        totalQueue = queueNorth + queueSouth + queueEast + queueWest
-        return totalQueue
-
-    # DONE
-    def getNumberOfVehiclesWithoutMovement(self, edge):
-        queue = self.getTraci().edge.getLastStepHaltingNumber(edge)
-        return queue
-
-    # TO DO # CHECK THIS ****
     def getAction(self, state):
         return self.ModelTest.getMaximumActions(self.ModelTest.getPredictionOneState(state))
-
-    # DONE #
-    """
-    Set up the yellow color in the traffic light according to the .net.xml file
-    """
-
-    def setYellowPhase(self, previousAction):
-        yellowPhasePositionTrafficLightId = previousAction + 1
-        self.setPhaseLightId(yellowPhasePositionTrafficLightId)
-
-    # DONE #
-    """
-    Set up the green color in the traffic light according to the .net.xml file
-    """
-
-    def setGreenPhase(self, action):
-        """
-        Switches to the phase with the given index in the list of all phases for the current program.
-        """
-        if action == 0:
-            self.setPhaseLightId(NORTH_SOUTH_REVERSE_GREEN_PHASE)
-        elif action == 1:
-            self.setPhaseLightId(EAST_WEST_REVERSE_GREEN_PHASE)
-
-    """
-    Set up movement traffic light ID phase
-    """
-
-    def setPhaseLightId(self, directionTrafficLightHeaderId):
-        """
-        setPhase(self, tlsID, index)
-        """
-        self.getTraci().trafficlight.setPhase("junction_center", directionTrafficLightHeaderId)
 
     def getStateLengthQueue(self):
         state = np.zeros(self.statesInput)
@@ -322,28 +156,6 @@ class TrafficLightControlSimulation:
         state[3] = self.getNumberOfVehiclesWithoutMovement("west_edge_one")
 
         return state
-
-    # TBD
-    """
-    Returns the current phase in the current program
-    """
-
-    def getCurrentPhase(self):
-        print("The current phase is .....")
-        print(self.getTraci().trafficlight.getPhase("junction_center"))
-        return self.getTraci().trafficlight.getPhase("junction_center")
-
-    # DONE #
-    def getActionsOutput(self):
-        return self.actionsOutput
-
-    # DONE #
-    def getStep(self):
-        return self.step_
-
-    # DONE #
-    def getMaximumSteps(self):
-        return self.maximumSteps
 
     # DONE #
     def getState(self):
@@ -483,7 +295,7 @@ class TrafficLightControlSimulation:
             """
             Returns the accumulated waiting time of a vehicle collects the vehicle's waiting time
             over a certain time interval (interval length is set per option '--waiting-time-memory')
-            e.g. 35.0, 0.0, 51.0, waitingTimes: {'N_S_3': 0.0, 'E_W_11': 28.0, 'W_E_13': 11.0}
+            e.g. 35.0, 0.0, 51.0, waitingTimes: {'N_S_3': 0.0, 'E_W_11': 28.0, 'W_E_13': 11.0, 'W_S_14': 0.0}
             """
             waitingTime = self.getAccumulatedTimePerVehicleIdentification(vehicleIdentification)
             # print("************* Waiting time ****************************")
@@ -496,7 +308,7 @@ class TrafficLightControlSimulation:
             roadIdentification = self.getRoadIdPerVehicleIdentification(vehicleIdentification)
             #  print(roadIdentification)
             """
-            e.g. waitingTimes: {'E_W_1': 0.0, 'E_W_10': 0.0, 'E_W_15': 0.0, 'E_W_4': 0.0}
+            e.g. waitingTimes: {'E_N_7': 0.0, 'E_W_1': 0.0, 'E_W_10': 0.0, 'E_W_15': 0.0, 'E_W_4': 0.0}
             """
             #  print("***************** Waiting times dictionary ******************")
             waitingTimesDictionary = self.getWaitingTimesDictionary(self.waitingTimes, roadsWithTrafficLights,
@@ -506,10 +318,6 @@ class TrafficLightControlSimulation:
         totalWaitingTime = self.getTotalWaitingTime(waitingTimesDictionary.values())
 
         return totalWaitingTime
-
-    # DONE
-    def getTotalWaitingTime(self, values):
-        return sum(values)
 
     # TO DO
     def getWaitingTimesDictionary(self, waitingTimes, roadsWithTrafficLights, vehicleIdentification, waitingTime,
@@ -531,6 +339,8 @@ class TrafficLightControlSimulation:
     def getAccumulatedTimePerVehicleIdentification(self, vehicleIdentication):
         waitingTime = self.getTraci().vehicle.getAccumulatedWaitingTime(vehicleIdentication)
         return waitingTime
+
+
 
     # DONE
     def saveInformationPerEpisode(self):

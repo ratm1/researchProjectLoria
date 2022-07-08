@@ -13,7 +13,7 @@ Main file to test a traffic simulation without reinforcement learning
 python main_standard.py results_testing 1 4 30
 
 ### EXPERIMENTS ####
-python main_testing.py results_testing 3 4 80
+python main_testing.py results_testing 1 4 40
 python main_testing.py results_testing 3 4 160
 python main_testing.py results_testing 3 4 320
 python main_testing.py results_testing 3 4 400
@@ -56,15 +56,15 @@ if __name__ == "__main__":
             episodeTesting += 1
 
         Plot(Configuration_.getPathModelOrResults()).printFile(
-            'dataEpisodeStepActionRewardState_' + sys.argv[1] + '_' + str(numberExperiment) + '_' + episodeTraining + '.csv',
+            'dataEpisodeStepActionRewardState_' + sys.argv[1] + '_' + str(numberExperiment) + '_' + str(episodeTraining) + '.csv',
             TrafficLightControlSimulation_.getStepActionStateInformation())
 
         Plot(Configuration_.getPathModelOrResults()).printFile(
-            'dataRewards_' + sys.argv[1] + '_' + str(numberExperiment) + '_' + episodeTraining + '.csv',
+            'dataRewards_' + sys.argv[1] + '_' + str(numberExperiment) + '_' + str(episodeTraining) + '.csv',
             TrafficLightControlSimulation_.getRewardsListTotalEpisodes())
 
         Plot(Configuration_.getPathModelOrResults()).printFile(
-            'dataCumulativeTime_' + sys.argv[1] + '_' + str(numberExperiment) + '_' + episodeTraining +  '.csv',
+            'dataCumulativeTime_' + sys.argv[1] + '_' + str(numberExperiment) + '_' + str(episodeTraining) +  '.csv',
             TrafficLightControlSimulation_.getCumulativeWaitingTimeTotalEpisodes())
 
         print("Finish  main_testing")
