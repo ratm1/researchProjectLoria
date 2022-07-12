@@ -5,6 +5,7 @@ from configuration import Configuration
 from trafficLightControlSimulationTraining import TrafficLightControlSimulation
 from model import ModelTrain
 from traffic import TrafficGenerator
+import numpy as np
 
 
 class TestMemory(unittest.TestCase):
@@ -41,7 +42,6 @@ class TestMemory(unittest.TestCase):
     def testMaximumSizeMemory(self):
         Memory_ = Memory(1, 7)
         self.assertEqual(Memory_.getMaximumSizeMemory(), 7)
-
 
     def testSamples(self):
         Memory_ = Memory(1, 2)
@@ -202,8 +202,6 @@ class TestTrafficLightControlSimulation(unittest.TestCase):
         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
         self.assertEqual(TrafficLightControlSimulation_.getMaximumSteps(), 700)
 
-
-
     def testTrafficLightControlSteps(self):
         """
          Test steps in the simulation
@@ -260,94 +258,93 @@ class TestTrafficLightControlSimulation(unittest.TestCase):
         self.assertIsInstance(TrafficLightControlSimulation_.getVehiclesIdList(), tuple)
         TrafficLightControlSimulation_.setCloseTraci()
 
-#
-#     def testTrafficLightCellLane(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(9), 0)
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(12), 1)
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(21), 2)
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(31), 3)
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(41), 4)
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(51), 5)
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(61), 6)
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(71), 7)
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(81), 8)
-#         self.assertEqual(TrafficLightControlSimulation_.getCellLane(91), 9)
-#
-#     def testTrafficLightGroupLane(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(TrafficLightControlSimulation_.getGroupLane("west_edge_one_0"), 0)
-#         self.assertEqual(TrafficLightControlSimulation_.getGroupLane("west_edge_one_1"), 1)
-#
-#         self.assertEqual(TrafficLightControlSimulation_.getGroupLane("north_edge_one_0"), 2)
-#         self.assertEqual(TrafficLightControlSimulation_.getGroupLane("north_edge_one_1"), 3)
-#
-#         self.assertEqual(TrafficLightControlSimulation_.getGroupLane("east_edge_one_0"), 4)
-#         self.assertEqual(TrafficLightControlSimulation_.getGroupLane("east_edge_one_1"), 5)
-#
-#         self.assertEqual(TrafficLightControlSimulation_.getGroupLane("south_edge_one_0"), 6)
-#         self.assertEqual(TrafficLightControlSimulation_.getGroupLane("south_edge_one_1"), 7)
-#
-#         self.assertEqual(TrafficLightControlSimulation_.getGroupLane("na"), -1)
-#
-#     def testTrafficLightPositionAndValidityCar(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(TrafficLightControlSimulation_.getPositionAndValidityCar(1, 2), [12, True])
-#         self.assertEqual(TrafficLightControlSimulation_.getPositionAndValidityCar(2, 5), [25, True])
-#         self.assertEqual(TrafficLightControlSimulation_.getPositionAndValidityCar(0, 5), [5, True])
-#         self.assertEqual(TrafficLightControlSimulation_.getPositionAndValidityCar(-1, 5), [0, False])
-#
-#     def testTrafficLightPositionAndValidityCar(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(
-#             TrafficLightControlSimulation_.getStateWithValidCars(np.zeros(80, dtype=np.float32), [2, True])[2], 1)
-#
-#     def testTrafficLightTotalWaitingTime(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(TrafficLightControlSimulation_.getTotalWaitingTime([2.0, 3.0, 5.0, 0.0, 7.0]), 17.0)
-#
-#     def testTotalStepsSimulationWhenHigherThanMaximumSteps(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(TrafficLightControlSimulation_.getTotalStepsSimulationWhenHigherThanMaximumSteps(500, 400),
-#                          100)
-#
-#     def testTotalStepsSimulationGivenMaximumSteps(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(TrafficLightControlSimulation_.getTotalStepsSimulationGivenMaximumSteps(498, 12, 500), 2)
-#         self.assertEqual(TrafficLightControlSimulation_.getTotalStepsSimulationGivenMaximumSteps(10, 12, 500), 12)
-#
-#     def testTrafficLightNumberOfVehiclesWithoutMovement(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         sumoConfiguration = TrafficLightControlSimulation_.getSumoConfiguration(
-#             TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
-#             TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
-#             TrafficLightControlSimulation_.getConfiguration().getMaximumSteps())
-#
-#         TrafficLightControlSimulation_.setRouteFileSimulation(1)
-#         TrafficLightControlSimulation_.setTraciStart(sumoConfiguration)
-#
-#         self.assertIsInstance(TrafficLightControlSimulation_.getNumberOfVehiclesWithoutMovement("north_edge_one"), int)
-#
-#         TrafficLightControlSimulation_.setCloseTraci()
-#
-#     def testTrafficLightTotalNumberOfVehiclesWithoutMovement(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         self.assertEqual(TrafficLightControlSimulation_.getTotalNumberOfVehiclesWithoutMovement(4, 1, 2, 0), 7)
-#
-#     def testTrafficLightSumNegativeRewards(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         TrafficLightControlSimulation_.setInitialParametersEpisode()
-#         TrafficLightControlSimulation_.setSumNegativeRewards(-10)
-#         self.assertEqual(TrafficLightControlSimulation_.getSumNegativeRewards(), -10)
-#
-#     def testTrafficLightSaveInformationPerEpisode(self):
-#         TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
-#         TrafficLightControlSimulation_.setInitialParametersEpisode()
-#         TrafficLightControlSimulation_.setSumNegativeRewards(-10)
-#         TrafficLightControlSimulation_.setSumWaitingTime(22)
-#         TrafficLightControlSimulation_.saveInformationPerEpisode()
-#         self.assertEqual(TrafficLightControlSimulation_.getRewardsListTotalEpisodes(), [-10])
-#         self.assertEqual(TrafficLightControlSimulation_.getCumulativeWaitingTimeTotalEpisodes(), [22])
+    def testTrafficLightCellLane(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(9), 0)
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(12), 1)
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(21), 2)
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(31), 3)
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(41), 4)
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(51), 5)
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(61), 6)
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(71), 7)
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(81), 8)
+        self.assertEqual(TrafficLightControlSimulation_.getCellLane(91), 9)
+
+    def testTrafficLightGroupLane(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(TrafficLightControlSimulation_.getGroupLane("west_edge_one_0"), 0)
+        self.assertEqual(TrafficLightControlSimulation_.getGroupLane("west_edge_one_1"), 1)
+
+        self.assertEqual(TrafficLightControlSimulation_.getGroupLane("north_edge_one_0"), 2)
+        self.assertEqual(TrafficLightControlSimulation_.getGroupLane("north_edge_one_1"), 3)
+
+        self.assertEqual(TrafficLightControlSimulation_.getGroupLane("east_edge_one_0"), 4)
+        self.assertEqual(TrafficLightControlSimulation_.getGroupLane("east_edge_one_1"), 5)
+
+        self.assertEqual(TrafficLightControlSimulation_.getGroupLane("south_edge_one_0"), 6)
+        self.assertEqual(TrafficLightControlSimulation_.getGroupLane("south_edge_one_1"), 7)
+
+        self.assertEqual(TrafficLightControlSimulation_.getGroupLane("na"), -1)
+
+    def testTrafficLightPositionAndValidityCar(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(TrafficLightControlSimulation_.getPositionAndValidityCar(1, 2), [12, True])
+        self.assertEqual(TrafficLightControlSimulation_.getPositionAndValidityCar(2, 5), [25, True])
+        self.assertEqual(TrafficLightControlSimulation_.getPositionAndValidityCar(0, 5), [5, True])
+        self.assertEqual(TrafficLightControlSimulation_.getPositionAndValidityCar(-1, 5), [0, False])
+
+    def testTrafficLightPositionAndValidityCar(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(
+            TrafficLightControlSimulation_.getStateWithValidCars(np.zeros(80, dtype=np.float32), [2, True])[2], 1)
+
+    def testTrafficLightTotalWaitingTime(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(TrafficLightControlSimulation_.getTotalWaitingTime([2.0, 3.0, 5.0, 0.0, 7.0]), 17.0)
+
+    def testTotalStepsSimulationWhenHigherThanMaximumSteps(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(TrafficLightControlSimulation_.getTotalStepsSimulationWhenHigherThanMaximumSteps(500, 400),
+                         100)
+
+    def testTotalStepsSimulationGivenMaximumSteps(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(TrafficLightControlSimulation_.getTotalStepsSimulationGivenMaximumSteps(498, 12, 500), 2)
+        self.assertEqual(TrafficLightControlSimulation_.getTotalStepsSimulationGivenMaximumSteps(10, 12, 500), 12)
+
+    def testTrafficLightNumberOfVehiclesWithoutMovement(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        sumoConfiguration = TrafficLightControlSimulation_.getSumoConfiguration(
+            TrafficLightControlSimulation_.getConfiguration().getPathSumoConfiguration(),
+            TrafficLightControlSimulation_.getConfiguration().getSumoGui(),
+            TrafficLightControlSimulation_.getConfiguration().getMaximumSteps())
+
+        TrafficLightControlSimulation_.setRouteFileSimulation(1)
+        TrafficLightControlSimulation_.setTraciStart(sumoConfiguration)
+
+        self.assertIsInstance(TrafficLightControlSimulation_.getNumberOfVehiclesWithoutMovement("north_edge_one"), int)
+
+        TrafficLightControlSimulation_.setCloseTraci()
+
+    def testTrafficLightTotalNumberOfVehiclesWithoutMovement(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        self.assertEqual(TrafficLightControlSimulation_.getTotalNumberOfVehiclesWithoutMovement(4, 1, 2, 0), 7)
+
+    def testTrafficLightSumNegativeRewards(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        TrafficLightControlSimulation_.setInitialParametersEpisode()
+        TrafficLightControlSimulation_.setSumNegativeRewards(-10)
+        self.assertEqual(TrafficLightControlSimulation_.getSumNegativeRewards(), -10)
+
+    def testTrafficLightSaveInformationPerEpisode(self):
+        TrafficLightControlSimulation_ = TrafficSimulationTesting().getTrafficLightControlSimulation()
+        TrafficLightControlSimulation_.setInitialParametersEpisode()
+        TrafficLightControlSimulation_.setSumNegativeRewards(-10)
+        TrafficLightControlSimulation_.setSumWaitingTime(22)
+        TrafficLightControlSimulation_.saveInformationPerEpisode()
+        self.assertEqual(TrafficLightControlSimulation_.getRewardsListTotalEpisodes(), [-10])
+        self.assertEqual(TrafficLightControlSimulation_.getCumulativeWaitingTimeTotalEpisodes(), [22])
 
 
 if __name__ == '__main__':
